@@ -2,6 +2,7 @@
 #define gpio_h
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 /**************************************************************************************\
 * Global macros
 \**************************************************************************************/
@@ -19,10 +20,13 @@
 // GPIOB
 #define RELAY4_PIN 0
 #define PUMP_PIN 1
+#define PUSH_BUTTON_PIN 2
 // GPIOD
+#define TEST_LED_PIN 4
 #define RELAY1_PIN 5
 #define RELAY2_PIN 6
 #define RELAY3_PIN 7
+
 
 /**************************************************************************************\
 * Private prototypes

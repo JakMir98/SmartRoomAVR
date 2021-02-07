@@ -15,6 +15,7 @@
 #define RELAY2_CHAR '2'
 #define RELAY3_CHAR '3'
 #define RELAY4_CHAR '4'
+#define PUMP_CHAR 'p'
 
 /**************************************************************************************\
 * Private prototypes

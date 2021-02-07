@@ -1,5 +1,4 @@
 #include "/Projekty/AVR projects/SmartRoom/SmartRoom/inc/adc.h"
-#include <avr/io.h>
 
 void ADC_Init()
 {
@@ -29,9 +28,7 @@ uint16_t ADC_AverageRead(uint8_t ADCchannel)
 	ADC_Read(ADCchannel); //first throw-away read
 	//read n sample values from the ADC and average them out
 	for(int i = 0; i < ADC_SAMPLES; ++i)
-	{
 		adcValTotal += ADC_Read(ADCchannel);
-	}
 
 	adcVal = adcValTotal / ADC_SAMPLES;
 	return adcVal;

@@ -13,10 +13,12 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/power.h>
 
 #include "inc/gpio.h"
 #include "inc/uart.h"
 #include "inc/adc.h"
+#include "inc/timer.h"
 #include <stdio.h>
 
 /**************************************************************************************\
@@ -34,10 +36,10 @@ typedef enum {
 * Private variables
 \**************************************************************************************/
 volatile char received;
-volatile int temperature_adc;
-volatile int humidity_adc;
 volatile State state = START;
-volatile uint8_t relays[] = {0,0,0,0};
+volatile uint8_t relays[] = { 0, 0, 0, 0 };
+volatile uint8_t pumpState = 0;
+volatile uint8_t testLedState = 0;
 	
 /**************************************************************************************\
 * Private prototypes
@@ -45,7 +47,6 @@ volatile uint8_t relays[] = {0,0,0,0};
 void avrRead(uint8_t);
 void relayHandle();
 void goToSleep();
-
 
 ISR(USART_RX_vect)
 {
@@ -71,9 +72,18 @@ ISR(USART_RX_vect)
 		case ADC_READ_CHAR:
 			state = READ_ADC;
 			break;
+		case PUMP_CHAR:
+			pumpState ^= 1;
+			state = PUMP_WATER;
+			break;
 	}
 }
 
+//PCINT[0-7] interrupt
+ISR(PCINT0_vect)
+{
+	testLedState ^= 1;
+}
 /**************************************************************************************\
 * Program start
 \**************************************************************************************/
@@ -100,11 +110,14 @@ int main(void)
 				relayHandle();
 				state = SLEEP;
 				break;
+			case PUMP_WATER:
+				if (pumpState == 1) RESET_BIT(PORTB, PUMP_PIN);
+				else SET_BIT(PORTB, PUMP_PIN);
+				state = SLEEP;
+				break;
 			default:
 			case SLEEP:
-				// go to sleep wait for interrupt 
-				//SET_BIT(PORTB, LED_PIN);
-				//RESET_BIT(PORTB, LED_PIN);
+				goToSleep();
 				break;
 		}
     }
@@ -132,7 +145,7 @@ void avrRead(uint8_t channel)
 
 void relayHandle()
 {
-	relays[0] == 0 ? SET_BIT(PORTD, RELAY1_PIN) : RESET_BIT(PORTD, RELAY1_PIN);
+	relays[0] == 1 ? SET_BIT(PORTD, RELAY1_PIN) : RESET_BIT(PORTD, RELAY1_PIN);
 	relays[1] == 1 ? SET_BIT(PORTD, RELAY2_PIN) : RESET_BIT(PORTD, RELAY2_PIN);
 	relays[2] == 1 ? SET_BIT(PORTD, RELAY2_PIN) : RESET_BIT(PORTD, RELAY3_PIN);
 	relays[3] == 1 ? SET_BIT(PORTB, RELAY4_PIN) : RESET_BIT(PORTB, RELAY4_PIN);
@@ -140,18 +153,20 @@ void relayHandle()
 
 void goToSleep()
 {
-	/*
-	// clear various "reset" flags
-	MCUSR = 0;
-	// allow changes, disable reset, enable Watchdog interrupt
-	WDTCSR = bit (WDCE) | bit (WDE);
-	// set interval (see datasheet p55)
-	WDTCSR = bit (WDIE) | bit (WDP2) | bit (WDP1);    // 128K cycles = approximativly 1 second
-	wdt_reset();  // start watchdog timer
-	set_sleep_mode (SLEEP_MODE_PWR_DOWN); // prepare for powerdown
-	sleep_enable();
-	sleep_cpu ();   // power down !
-	*/
+	set_sleep_mode(SLEEP_MODE_IDLE); // sleep mode is set here
+
+	sleep_enable(); // enables the sleep bit in the mcucr register
+
+	power_adc_disable();
+	power_spi_disable();
+	power_timer0_disable();
+	power_timer1_disable();
+	power_timer2_disable();
+	power_twi_disable();
+
+	sleep_mode();
+
+	// THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
+	sleep_disable();
+	power_all_enable();
 }
-
-

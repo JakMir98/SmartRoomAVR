@@ -139,6 +139,9 @@
     <Compile Include="inc\gpio.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="inc\timer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="inc\uart.h">
       <SubType>compile</SubType>
     </Compile>
@@ -149,6 +152,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\gpio.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\timer.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\uart.c">
